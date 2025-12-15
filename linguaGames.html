@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinguaRush - Translation Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .difficulty-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-level1 {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-level2 {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-level3 {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-level4 {
+            background: #9f7aea;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .timer-warning {
+            color: #f56565;
+        }
+
+        .question-box {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .question-text {
+            font-size: 1.5em;
+            color: #2d3748;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #cbd5e0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .answer-input:disabled {
+            background: #e2e8f0;
+            cursor: not-allowed;
+        }
+
+        .streak-indicator {
+            display: none;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        .streak-indicator.active {
+            display: block;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .feedback {
+            display: none;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .feedback.correct {
+            background: #c6f6d5;
+            color: #22543d;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #fed7d7;
+            color: #742a2a;
+            display: block;
+        }
+
+        .explanation {
+            margin-top: 10px;
+            font-size: 0.95em;
+            font-style: italic;
+        }
+
+        .word-correct {
+            background: #48bb78;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            margin: 0 3px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .word-incorrect {
+            background: #f56565;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            margin: 0 3px;
+            text-decoration: line-through;
+            display: inline-block;
+        }
+
+        .word-neutral {
+            padding: 3px 8px;
+            margin: 0 3px;
+            display: inline-block;
+            background: #e2e8f0;
+            border-radius: 5px;
+        }
+
+        .answer-comparison {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            line-height: 2.2;
+            font-size: 1.05em;
+        }
+
+        .comparison-label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .results-summary {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .final-score {
+            font-size: 3em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .performance {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+        }
+
+        .leaderboard h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f7fafc;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+            background: #edf2f7;
+        }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 15px;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+        }
+
+        .leaderboard-score {
+            font-weight: bold;
+            color: #48bb78;
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+
+        .level-description {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎮 Word Rush</h1>
+        <p class="subtitle">Master English to Malay Vocabulary</p>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen active">
+            <h2 style="text-align: center; margin-bottom: 20px;">Choose Your Level</h2>
+            <div class="difficulty-buttons">
+                <button class="btn btn-level1" onclick="startGame('level1')">
+                    🟢 Level 1<br><small>Beginner Vocabulary</small>
+                </button>
+                <button class="btn btn-level2" onclick="startGame('level2')">
+                    🔵 Level 2<br><small>Intermediate Vocabulary</small>
+                </button>
+                <button class="btn btn-level3" onclick="startGame('level3')">
+                    🔴 Level 3<br><small>Advanced Vocabulary</small>
+                </button>
+                <button class="btn btn-level4" onclick="startGame('level4')">
+                    🟣 Level 4<br><small>Rare/Expert Vocabulary</small>
+                </button>
+            </div>
+
+            <div class="leaderboard">
+                <h3>🏆 Leaderboard</h3>
+                <ul id="leaderboardList" class="leaderboard-list">
+                    <li class="leaderboard-item">
+                        <span class="leaderboard-rank">#1</span>
+                        <span class="leaderboard-name">Start playing to see rankings!</span>
+                        <span class="leaderboard-score">-</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">Question</div>
+                    <div class="info-value" id="questionNumber">1/10</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Score</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Time</div>
+                    <div class="info-value" id="timer">120</div>
+                </div>
+            </div>
+
+            <div class="streak-indicator" id="streakIndicator">
+                🔥 On Fire! 3 in a row!
+            </div>
+
+            <div class="question-box">
+                <div class="question-text" id="questionText"></div>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+
+            <input type="text" class="answer-input" id="answerInput" placeholder="Type your Malay translation here..."
+                onkeypress="handleKeyPress(event)">
+
+            <button class="btn btn-primary" style="width: 100%;" id="actionBtn" onclick="handleButtonClick()">
+                Submit Answer
+            </button>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="screen">
+            <div class="results-summary">
+                <h2>🎉 Game Complete!</h2>
+                <div class="final-score" id="finalScore">0</div>
+                <div class="performance" id="performance"></div>
+            </div>
+
+            <div>
+                <label for="playerName">Enter your name for the leaderboard:</label>
+                <input type="text" id="playerName" class="name-input" placeholder="Your name">
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" style="flex: 1;" onclick="saveScore()">
+                    Save Score
+                </button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="restartGame()">
+                    Play Again
+                </button>
+            </div>
+
+            <div class="leaderboard">
+                <h3>🏆 Leaderboard</h3>
+                <ul id="resultsLeaderboard" class="leaderboard-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game data - organized by levels
+        const vocabulary = {
+            level1: [
+                { en: "Car", ms: "Kereta", explanation: "Kereta is the standard Malay word used to refer to a car in everyday communication." },
+                { en: "Book", ms: "Buku", explanation: "Buku is a commonly used Malay term and is the accepted equivalent in both spoken and written contexts." },
+                { en: "School", ms: "Sekolah", explanation: "Sekolah is the standard Malay translation used in educational settings." },
+                { en: "Teacher", ms: "Guru", explanation: "Guru is the accepted Malay term used to refer to a teacher." },
+                { en: "Student", ms: "Pelajar", explanation: "Pelajar is widely used in Malay to describe a person who is learning in a school or institution." },
+                { en: "House", ms: "Rumah", explanation: "Rumah is the standard Malay word used to describe a place where people live." },
+                { en: "Food", ms: "Makanan", explanation: "Makanan is derived from makan and is the commonly used term for food in Malay." },
+                { en: "Water", ms: "Air", explanation: "Air is the accepted Malay term used to refer to water in daily usage." },
+                { en: "Friend", ms: "Kawan", explanation: "Kawan is a commonly used Malay word referring to a friend." },
+                { en: "Family", ms: "Keluarga", explanation: "Keluarga is the standard Malay term used to refer to family members." },
+                { en: "Morning", ms: "Pagi", explanation: "Pagi is the accepted Malay word used to describe the early part of the day." },
+                { en: "Night", ms: "Malam", explanation: "Malam is the standard Malay term used to refer to night time." },
+                { en: "Happy", ms: "Gembira", explanation: "Gembira is commonly used in Malay to describe a feeling of happiness." },
+                { en: "Sad", ms: "Sedih", explanation: "Sedih is the accepted Malay adjective used to describe sadness." },
+                { en: "Big", ms: "Besar", explanation: "Besar is the standard Malay word used to describe size." },
+                { en: "Small", ms: "Kecil", explanation: "Kecil is commonly used in Malay as the opposite of 'besar'." },
+                { en: "Fast", ms: "Cepat", explanation: "Cepat is the accepted Malay word used to describe speed." },
+                { en: "Slow", ms: "Perlahan", explanation: "Perlahan is the standard Malay term used to describe slow movement." },
+                { en: "Day", ms: "Hari", explanation: "Hari is the accepted Malay word referring to a day." },
+                { en: "Saturday", ms: "Sabtu", explanation: "Sabtu is the standard Malay term used to refer to Saturday in calendars and daily speech." },
+                { en: "Monday", ms: "Isnin", explanation: "Isnin is the accepted Malay term used to refer to Monday." },
+                { en: "Red", ms: "Merah", explanation: "Merah is the standard Malay word for the colour red." },
+                { en: "Blue", ms: "Biru", explanation: "Biru is commonly used in Malay to refer to the colour blue." },
+                { en: "Green", ms: "Hijau", explanation: "Hijau is the accepted Malay term used for the colour green." },
+                { en: "Dog", ms: "Anjing", explanation: "Anjing is the standard Malay word used to refer to a dog." },
+                { en: "Cat", ms: "Kucing", explanation: "Kucing is commonly used in Malay to refer to a cat." },
+                { en: "Run", ms: "Lari", explanation: "Lari is the accepted Malay verb used to describe running." },
+                { en: "Eat", ms: "Makan", explanation: "Makan is the standard Malay verb used to describe eating." },
+                { en: "Sleep", ms: "Tidur", explanation: "Tidur is commonly used in Malay to describe sleeping." },
+                { en: "Read", ms: "Baca", explanation: "Baca is the accepted Malay verb used to describe reading." }
+            ],
+            level2: [
+                { en: "Knowledge", ms: "Pengetahuan", explanation: "Pengetahuan is the standard Malay equivalent of 'knowledge' and is formed from the root tahu with the prefix pe- and suffix -an." },
+                { en: "Experience", ms: "Pengalaman", explanation: "Pengalaman is derived from the root alam and refers to lived events." },
+                { en: "Decision", ms: "Keputusan", explanation: "Keputusan is widely used in formal and informal Malay to refer to the outcome of a choice or discussion." },
+                { en: "Effort", ms: "Usaha", explanation: "Usaha is the standard Malay translation and is frequently used to describe personal or collective effort." },
+                { en: "Success", ms: "Kejayaan", explanation: "Kejayaan comes from the root jaya and is commonly used to express achievement or accomplishment." },
+                { en: "Failure", ms: "Kegagalan", explanation: "Kegagalan is formed from gagal and is the accepted opposite of 'kejayaan' in Malay usage." },
+                { en: "Responsibility", ms: "Tanggungjawab", explanation: "Tanggungjawab is the recognised Malay term used in schools, workplaces, and official documents." },
+                { en: "Opportunity", ms: "Peluang", explanation: "Peluang is the standard translation and is commonly used to describe chances or possibilities." },
+                { en: "Problem", ms: "Masalah", explanation: "Masalah is a borrowed word that has been fully integrated into Malay and is widely used." },
+                { en: "Solution", ms: "Penyelesaian", explanation: "Penyelesaian is derived from selesai and is the formal Malay equivalent used in problem-solving contexts." },
+                { en: "Improve", ms: "Meningkatkan", explanation: "Meningkatkan is commonly used to express making something better or higher in degree." },
+                { en: "Reduce", ms: "Mengurangkan", explanation: "Mengurangkan is the accepted Malay term meaning to make something less or smaller." },
+                { en: "Increase", ms: "Meningkatkan", explanation: "Meningkatkan is also used for 'increase' in Malay, depending on context." },
+                { en: "Danger", ms: "Bahaya", explanation: "Bahaya is a direct and commonly used translation referring to harmful situations." },
+                { en: "Safety", ms: "Keselamatan", explanation: "Keselamatan is derived from selamat and is the formal Malay term used in rules, signs, and official texts." },
+                { en: "Important", ms: "Penting", explanation: "Penting is the standard Malay adjective used to describe significance or priority." },
+                { en: "Necessary", ms: "Perlu", explanation: "Perlu is commonly used in Malay to indicate necessity or obligation." },
+                { en: "Comfortable", ms: "Selesa", explanation: "Selesa is widely used to describe physical or emotional comfort." },
+                { en: "Difficult", ms: "Sukar", explanation: "Sukar is the formal Malay equivalent often used in education and written texts." },
+                { en: "Easy", ms: "Mudah", explanation: "Mudah is the standard opposite of 'sukar' and is frequently used in everyday Malay." },
+                { en: "Honest", ms: "Jujur", explanation: "Jujur is the accepted Malay adjective describing truthfulness." },
+                { en: "Careful", ms: "Berhati-hati", explanation: "Berhati-hati is commonly used to express caution and attentiveness." },
+                { en: "Support", ms: "Sokongan", explanation: "Sokongan is derived from sokong and is widely used in formal and informal Malay." },
+                { en: "Advice", ms: "Nasihat", explanation: "Nasihat is a borrowed word from Arabic that is fully integrated into Malay usage." },
+                { en: "Reason", ms: "Sebab", explanation: "Sebab is the standard Malay term used to explain cause or justification." },
+                { en: "Result", ms: "Hasil", explanation: "Hasil is commonly used to refer to outcomes or results in Malay contexts." },
+                { en: "Control", ms: "Kawalan", explanation: "Kawalan is the accepted Malay term, frequently used in technical and administrative language." },
+                { en: "Plan", ms: "Rancangan", explanation: "Rancangan is the formal Malay equivalent used to describe future arrangements." },
+                { en: "Change", ms: "Perubahan", explanation: "Perubahan is derived from ubah and is the standard translation used in formal contexts." },
+                { en: "Trust", ms: "Kepercayaan", explanation: "Kepercayaan is derived from percaya and is widely used in social and professional communication." }
+            ],
+            level3: [
+                { en: "Diagnosis", ms: "Diagnosis", explanation: "Diagnosis is a direct borrowing from English and is commonly used in Malay medical contexts without translation." },
+                { en: "Treatment", ms: "Rawatan", explanation: "Rawatan is derived from rawat and is the standard Malay term used in healthcare settings." },
+                { en: "Symptom", ms: "Simptom", explanation: "Simptom is a borrowed medical term adapted to Malay spelling and widely accepted in formal medical communication." },
+                { en: "Medication", ms: "Ubat", explanation: "Ubat is the commonly used Malay term referring to medicine in both professional and everyday contexts." },
+                { en: "Infection", ms: "Jangkitan", explanation: "Jangkitan is derived from jangkit and is the accepted Malay term used in health-related materials." },
+                { en: "Contract", ms: "Kontrak", explanation: "Kontrak is a loanword from English adapted to Malay spelling and is the standard legal term." },
+                { en: "Evidence", ms: "Bukti", explanation: "Bukti is the recognised Malay term used in legal and academic contexts." },
+                { en: "Lawyer", ms: "Peguam", explanation: "Peguam is the formal Malay term used to refer to legal representatives." },
+                { en: "Court", ms: "Mahkamah", explanation: "Mahkamah is borrowed from Arabic and is the accepted term used in the Malaysian legal system." },
+                { en: "Verdict", ms: "Keputusan", explanation: "Keputusan is commonly used in Malay to refer to the outcome of a legal case." },
+                { en: "Structure", ms: "Struktur", explanation: "Struktur is a borrowed term adapted to Malay spelling and is widely used in technical contexts." },
+                { en: "System", ms: "Sistem", explanation: "Sistem is a loanword that has been fully integrated into Malay technical and academic usage." },
+                { en: "Design", ms: "Reka bentuk", explanation: "Reka bentuk is the standard Malay phrase used to describe planning and creation in engineering contexts." },
+                { en: "Material", ms: "Bahan", explanation: "Bahan is the accepted Malay term used to refer to physical substances used in construction or production." },
+                { en: "Function", ms: "Fungsi", explanation: "Fungsi is a borrowed term adapted to Malay spelling and commonly used in technical descriptions." },
+                { en: "Profit", ms: "Keuntungan", explanation: "Keuntungan is derived from untung and is the standard Malay term used in business contexts." },
+                { en: "Loss", ms: "Kerugian", explanation: "Kerugian is derived from rugi and is commonly used as the opposite of 'keuntungan'." },
+                { en: "Investment", ms: "Pelaburan", explanation: "Pelaburan is derived from labur and is the accepted Malay term in financial contexts." },
+                { en: "Budget", ms: "Bajet", explanation: "Bajet is a borrowed word adapted to Malay spelling and is widely used in formal financial communication." },
+                { en: "Market", ms: "Pasaran", explanation: "Pasaran is derived from pasar and is the standard Malay term used in economics." },
+                { en: "Theory", ms: "Teori", explanation: "Teori is a borrowed academic term adapted to Malay spelling and commonly used in formal writing." },
+                { en: "Research", ms: "Penyelidikan", explanation: "Penyelidikan is derived from selidik and is the standard Malay term used in academic contexts." },
+                { en: "Analysis", ms: "Analisis", explanation: "Analisis is a borrowed word adapted to Malay spelling and used in academic and professional texts." },
+                { en: "Method", ms: "Kaedah", explanation: "Kaedah is borrowed from Arabic and is widely used in education and research writing." },
+                { en: "Conclusion", ms: "Kesimpulan", explanation: "Kesimpulan is derived from simpul and is the accepted Malay term in academic writing." },
+                { en: "Behaviour", ms: "Tingkah laku", explanation: "Tingkah laku is the standard Malay phrase used to describe actions or conduct." },
+                { en: "Emotion", ms: "Emosi", explanation: "Emosi is a borrowed term adapted to Malay spelling and widely used in educational contexts." },
+                { en: "Motivation", ms: "Motivasi", explanation: "Motivasi is a loanword adapted to Malay spelling and commonly used in psychology and education." },
+                { en: "Stress", ms: "Tekanan", explanation: "Tekanan is derived from tekan and is the standard Malay term used in formal contexts." },
+                { en: "Confidence", ms: "Keyakinan", explanation: "Keyakinan is derived from yakin and is the accepted Malay term in social and educational contexts." }
+            ],
+            level4: [
+                { en: "Serene", ms: "Tenang", explanation: "Tenang is the accepted Malay equivalent used to describe a calm or peaceful state in formal and descriptive contexts." },
+                { en: "Fragile", ms: "Rapuh", explanation: "Rapuh is the standard Malay term used to describe something that breaks easily." },
+                { en: "Obscure", ms: "Kabur", explanation: "Kabur is used in Malay to describe something unclear or difficult to understand." },
+                { en: "Tedious", ms: "Melelahkan", explanation: "Melelahkan is the accepted Malay term used to describe an activity that causes mental or physical tiredness." },
+                { en: "Peculiar", ms: "Pelik", explanation: "Pelik is commonly used in Malay to describe something unusual or strange." },
+                { en: "Reluctant", ms: "Enggan", explanation: "Enggan is a formal Malay word used to express unwillingness." },
+                { en: "Subtle", ms: "Halus", explanation: "Halus is used in Malay to describe small or not easily noticed differences or actions." },
+                { en: "Vague", ms: "Samar", explanation: "Samar is the standard Malay adjective used to describe something that is not clearly defined." },
+                { en: "Diligent", ms: "Rajin", explanation: "Rajin is the accepted Malay term used to describe consistent effort or hard work." },
+                { en: "Humble", ms: "Rendah diri", explanation: "Rendah diri is the standard Malay phrase used to describe modest behaviour." },
+                { en: "Relief", ms: "Kelegaan", explanation: "Kelegaan is derived from lega and is used to describe the feeling of being free from worry." },
+                { en: "Tolerate", ms: "Bertolak ansur", explanation: "Bertolak ansur is a commonly accepted Malay phrase used to express tolerance in social contexts." },
+                { en: "Grief", ms: "Kesedihan", explanation: "Kesedihan is the standard Malay term used to describe deep sadness." },
+                { en: "Solitary", ms: "Bersendirian", explanation: "Bersendirian is used in Malay to describe a state of being alone." },
+                { en: "Exhausted", ms: "Keletihan", explanation: "Keletihan is derived from letih and is used in formal contexts to describe extreme tiredness." },
+                { en: "Scarce", ms: "Terhad", explanation: "Terhad is the accepted Malay term used to describe limited quantity or availability." },
+                { en: "Significant", ms: "Bermakna", explanation: "Bermakna is commonly used in Malay to express importance or meaningfulness." },
+                { en: "Temporary", ms: "Sementara", explanation: "Sementara is the standard Malay term used to describe something that does not last." },
+                { en: "Persistent", ms: "Berterusan", explanation: "Berterusan is used in Malay to describe actions that continue over time." },
+                { en: "Rigid", ms: "Tegas", explanation: "Tegas is the accepted Malay term used to describe strictness or firmness in behaviour or rules." },
+                { en: "Grateful", ms: "Bersyukur", explanation: "Bersyukur is commonly used in Malay to express thankfulness." },
+                { en: "Doubtful", ms: "Ragu-ragu", explanation: "Ragu-ragu is the standard Malay phrase used to describe uncertainty." },
+                { en: "Cautious", ms: "Berwaspada", explanation: "Berwaspada is a formal Malay term used to express careful awareness." },
+                { en: "Immense", ms: "Sangat besar", explanation: "Sangat besar is used in Malay to express extremely large size." },
+                { en: "Uncertain", ms: "Tidak pasti", explanation: "Tidak pasti is commonly used to describe a lack of certainty." },
+                { en: "Resilient", ms: "Tahan lasak", explanation: "Tahan lasak is an accepted Malay phrase used to describe strength under pressure." },
+                { en: "Sincere", ms: "Ikhlas", explanation: "Ikhlas is widely used in Malay to describe genuine intentions." },
+                { en: "Rigidly", ms: "Secara tegas", explanation: "Secara tegas is used to describe actions done in a strict or firm manner." },
+                { en: "Trivial", ms: "Remeh", explanation: "Remeh is the accepted Malay adjective used to describe something of little importance." },
+                { en: "Solace", ms: "Penghiburan", explanation: "Penghiburan is used in Malay to describe comfort given during difficult situations." }
+            ]
+        };
+
+        let currentDifficulty = '';
+        let currentQuestions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let streak = 0;
+        let timeLeft = 120;
+        let timerInterval;
+        let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+        let isAnswerSubmitted = false;
+
+        function startGame(level) {
+            currentDifficulty = level;
+            currentQuestions = shuffleArray([...vocabulary[level]]).slice(0, 10);
+            currentQuestion = 0;
+            score = 0;
+            streak = 0;
+            timeLeft = 120;
+            isAnswerSubmitted = false;
+
+            showScreen('gameScreen');
+            loadQuestion();
+            startTimer();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function loadQuestion() {
+            const question = currentQuestions[currentQuestion];
+            document.getElementById('questionText').textContent = question.en;
+            document.getElementById('questionNumber').textContent = `${currentQuestion + 1}/10`;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').disabled = false;
+            document.getElementById('feedback').className = 'feedback';
+            document.getElementById('answerInput').focus();
+
+            isAnswerSubmitted = false;
+            const btn = document.getElementById('actionBtn');
+            btn.textContent = 'Submit Answer';
+            btn.style.display = 'block';
+
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion) / 10) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                handleButtonClick();
+            }
+        }
+
+        function handleButtonClick() {
+            if (!isAnswerSubmitted) {
+                submitAnswer();
+            } else {
+                nextQuestion();
+            }
+        }
+
+        function submitAnswer() {
+            const userAnswer = document.getElementById('answerInput').value.trim();
+
+            if (!userAnswer) {
+                alert('Please enter your answer!');
+                return;
+            }
+
+            const correctAnswer = currentQuestions[currentQuestion].ms;
+            const explanation = currentQuestions[currentQuestion].explanation;
+
+            const result = calculateWordMatches(userAnswer, correctAnswer);
+            const feedback = document.getElementById('feedback');
+
+            if (result.correctWords > 0) {
+                const points = result.correctWords * 10;
+                const timeBonus = result.correctWords * 5;
+                score += points;
+                timeLeft += timeBonus;
+                streak++;
+
+                feedback.className = 'feedback correct';
+                let feedbackHTML = `<strong>✅ Great! ${result.correctWords} out of ${result.totalWords} word(s) correct!</strong><br>`;
+                feedbackHTML += `<strong>+${points} points | +${timeBonus} seconds</strong><br><br>`;
+
+                feedbackHTML += `<div class="answer-comparison">`;
+                feedbackHTML += `<span class="comparison-label">Your answer:</span>`;
+                feedbackHTML += `<div>${result.userHighlighted}</div><br>`;
+                feedbackHTML += `<span class="comparison-label">Correct answer:</span>`;
+                feedbackHTML += `<div>${result.correctHighlighted}</div>`;
+                feedbackHTML += `</div>`;
+
+                if (result.correctWords === result.totalWords) {
+                    feedbackHTML += `<strong>🎯 Perfect translation!</strong><br>`;
+                }
+                feedbackHTML += `<div class="explanation">💡 ${explanation}</div>`;
+                feedback.innerHTML = feedbackHTML;
+
+                if (streak >= 3) {
+                    document.getElementById('streakIndicator').classList.add('active');
+                    document.getElementById('streakIndicator').textContent = `🔥 On Fire! ${streak} in a row!`;
+                }
+            } else {
+                streak = 0;
+                feedback.className = 'feedback incorrect';
+                let feedbackHTML = `<strong>❌ No correct words found</strong><br><br>`;
+                feedbackHTML += `<div class="answer-comparison">`;
+                feedbackHTML += `<span class="comparison-label">Your answer:</span>`;
+                feedbackHTML += `<div>${result.userHighlighted}</div><br>`;
+                feedbackHTML += `<span class="comparison-label">Correct answer:</span>`;
+                feedbackHTML += `<div>${result.correctHighlighted}</div>`;
+                feedbackHTML += `</div>`;
+                feedbackHTML += `<div class="explanation">💡 ${explanation}</div>`;
+                feedback.innerHTML = feedbackHTML;
+                document.getElementById('streakIndicator').classList.remove('active');
+            }
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('timer').textContent = timeLeft;
+
+            document.getElementById('answerInput').disabled = true;
+            const btn = document.getElementById('actionBtn');
+            btn.textContent = 'Next Question →';
+            isAnswerSubmitted = true;
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < 10 && timeLeft > 0) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function calculateWordMatches(userAnswer, correctAnswer) {
+            const userWordsLower = userAnswer.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+            const correctWordsLower = correctAnswer.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+
+            const userWordsOriginal = userAnswer.split(/\s+/).filter(w => w.length > 0);
+            const correctWordsOriginal = correctAnswer.split(/\s+/).filter(w => w.length > 0);
+
+            let correctCount = 0;
+            const matchedIndices = new Set();
+            const userMatched = new Set();
+
+            userWordsLower.forEach((userWord, userIndex) => {
+                correctWordsLower.forEach((correctWord, correctIndex) => {
+                    if (!matchedIndices.has(correctIndex) && !userMatched.has(userIndex) && userWord === correctWord) {
+                        correctCount++;
+                        matchedIndices.add(correctIndex);
+                        userMatched.add(userIndex);
+                    }
+                });
+            });
+
+            let userHighlighted = userWordsOriginal.map((word, index) => {
+                if (userMatched.has(index)) {
+                    return `<span class="word-correct">${word}</span>`;
+                } else {
+                    return `<span class="word-incorrect">${word}</span>`;
+                }
+            }).join(' ');
+
+            let correctHighlighted = correctWordsOriginal.map((word, index) => {
+                if (matchedIndices.has(index)) {
+                    return `<span class="word-correct">${word}</span>`;
+                } else {
+                    return `<span class="word-neutral">${word}</span>`;
+                }
+            }).join(' ');
+
+            return {
+                correctWords: correctCount,
+                totalWords: correctWordsLower.length,
+                userHighlighted: userHighlighted,
+                correctHighlighted: correctHighlighted
+            };
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+
+                if (timeLeft <= 20) {
+                    document.getElementById('timer').classList.add('timer-warning');
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            showScreen('resultsScreen');
+
+            document.getElementById('finalScore').textContent = score;
+
+            let performance = '';
+            if (score >= 900) performance = '🏆 Outstanding! Vocabulary Master!';
+            else if (score >= 700) performance = '⭐ Excellent! Great job!';
+            else if (score >= 500) performance = '👍 Good effort! Keep practicing!';
+            else performance = '📚 Keep learning! You can do better!';
+
+            document.getElementById('performance').textContent = performance;
+            displayLeaderboard('resultsLeaderboard');
+        }
+
+        function saveScore() {
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) {
+                alert('Please enter your name!');
+                return;
+            }
+
+            leaderboard.push({
+                name: name,
+                score: score,
+                difficulty: currentDifficulty,
+                date: new Date().toLocaleDateString()
+            });
+
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 10);
+
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+            displayLeaderboard('resultsLeaderboard');
+
+            alert('Score saved successfully!');
+        }
+
+        function displayLeaderboard(elementId) {
+            const list = document.getElementById(elementId);
+            list.innerHTML = '';
+
+            if (leaderboard.length === 0) {
+                list.innerHTML = '<li class="leaderboard-item"><span class="leaderboard-name">No scores yet. Be the first!</span></li>';
+                return;
+            }
+
+            leaderboard.forEach((entry, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                li.innerHTML = `
+                    <span class="leaderboard-rank">#${index + 1}</span>
+                    <span class="leaderboard-name">${entry.name} (${entry.difficulty})</span>
+                    <span class="leaderboard-score">${entry.score}</span>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function restartGame() {
+            showScreen('startScreen');
+            displayLeaderboard('leaderboardList');
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        displayLeaderboard('leaderboardList');
+    </script>
+</body>
+
+</html>
