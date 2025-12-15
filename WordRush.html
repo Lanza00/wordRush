@@ -363,110 +363,6 @@
             margin-top: 5px;
         }
     </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>🎮 Word Rush</h1>
-        <p class="subtitle">Master English to Malay Vocabulary</p>
-
-        <!-- Start Screen -->
-        <div id="startScreen" class="screen active">
-            <h2 style="text-align: center; margin-bottom: 20px;">Choose Your Level</h2>
-            <div class="difficulty-buttons">
-                <button class="btn btn-level1" onclick="startGame('level1')">
-                    🟢 Level 1<br><small>Beginner Vocabulary</small>
-                </button>
-                <button class="btn btn-level2" onclick="startGame('level2')">
-                    🔵 Level 2<br><small>Intermediate Vocabulary</small>
-                </button>
-                <button class="btn btn-level3" onclick="startGame('level3')">
-                    🔴 Level 3<br><small>Advanced Vocabulary</small>
-                </button>
-                <button class="btn btn-level4" onclick="startGame('level4')">
-                    🟣 Level 4<br><small>Rare/Expert Vocabulary</small>
-                </button>
-            </div>
-
-            <div class="leaderboard">
-                <h3>🏆 Leaderboard</h3>
-                <ul id="leaderboardList" class="leaderboard-list">
-                    <li class="leaderboard-item">
-                        <span class="leaderboard-rank">#1</span>
-                        <span class="leaderboard-name">Start playing to see rankings!</span>
-                        <span class="leaderboard-score">-</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Game Screen -->
-        <div id="gameScreen" class="screen">
-            <div class="progress-bar">
-                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
-            </div>
-
-            <div class="game-info">
-                <div class="info-item">
-                    <div class="info-label">Question</div>
-                    <div class="info-value" id="questionNumber">1/10</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Score</div>
-                    <div class="info-value" id="score">0</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Time</div>
-                    <div class="info-value" id="timer">120</div>
-                </div>
-            </div>
-
-            <div class="streak-indicator" id="streakIndicator">
-                🔥 On Fire! 3 in a row!
-            </div>
-
-            <div class="question-box">
-                <div class="question-text" id="questionText"></div>
-            </div>
-
-            <div class="feedback" id="feedback"></div>
-
-            <input type="text" class="answer-input" id="answerInput" placeholder="Type your Malay translation here..."
-                onkeypress="handleKeyPress(event)">
-
-            <button class="btn btn-primary" style="width: 100%;" id="actionBtn" onclick="handleButtonClick()">
-                Submit Answer
-            </button>
-        </div>
-
-        <!-- Results Screen -->
-        <div id="resultsScreen" class="screen">
-            <div class="results-summary">
-                <h2>🎉 Game Complete!</h2>
-                <div class="final-score" id="finalScore">0</div>
-                <div class="performance" id="performance"></div>
-            </div>
-
-            <div>
-                <label for="playerName">Enter your name for the leaderboard:</label>
-                <input type="text" id="playerName" class="name-input" placeholder="Your name">
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-primary" style="flex: 1;" onclick="saveScore()">
-                    Save Score
-                </button>
-                <button class="btn btn-secondary" style="flex: 1;" onclick="restartGame()">
-                    Play Again
-                </button>
-            </div>
-
-            <div class="leaderboard">
-                <h3>🏆 Leaderboard</h3>
-                <ul id="resultsLeaderboard" class="leaderboard-list"></ul>
-            </div>
-        </div>
-    </div>
 
     <script>
         // Game data - organized by levels
@@ -606,6 +502,7 @@
         let currentQuestion = 0;
         let score = 0;
         let streak = 0;
+        let lives = 3;
         let timeLeft = 120;
         let timerInterval;
         let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
@@ -617,12 +514,14 @@
             currentQuestion = 0;
             score = 0;
             streak = 0;
+            lives = 3;
             timeLeft = 120;
             isAnswerSubmitted = false;
 
             showScreen('gameScreen');
             loadQuestion();
             startTimer();
+            updateLivesDisplay();
         }
 
         function shuffleArray(array) {
@@ -713,6 +612,9 @@
                 }
             } else {
                 streak = 0;
+                lives--; // Deduct a life for completely wrong answer
+                updateLivesDisplay();
+
                 feedback.className = 'feedback incorrect';
                 let feedbackHTML = `<strong>❌ No correct words found</strong><br><br>`;
                 feedbackHTML += `<div class="answer-comparison">`;
@@ -724,6 +626,18 @@
                 feedbackHTML += `<div class="explanation">💡 ${explanation}</div>`;
                 feedback.innerHTML = feedbackHTML;
                 document.getElementById('streakIndicator').classList.remove('active');
+
+                // Check if game should end due to no lives
+                if (lives <= 0) {
+                    // Disable input and button
+                    document.getElementById('answerInput').disabled = true;
+                    document.getElementById('actionBtn').style.display = 'none';
+
+                    setTimeout(() => {
+                        endGame();
+                    }, 2000); // Give user 2 seconds to see the feedback
+                    return;
+                }
             }
 
             document.getElementById('score').textContent = score;
@@ -737,11 +651,18 @@
 
         function nextQuestion() {
             currentQuestion++;
-            if (currentQuestion < 10 && timeLeft > 0) {
+            if (currentQuestion < 10 && timeLeft > 0 && lives > 0) {
                 loadQuestion();
             } else {
                 endGame();
             }
+        }
+
+        function updateLivesDisplay() {
+            const livesElement = document.getElementById('lives');
+            const safeLives = Math.max(0, lives); // Ensure lives is never negative
+            const hearts = '❤️'.repeat(safeLives) + '🖤'.repeat(3 - safeLives);
+            livesElement.textContent = hearts;
         }
 
         function calculateWordMatches(userAnswer, correctAnswer) {
@@ -811,10 +732,19 @@
             document.getElementById('finalScore').textContent = score;
 
             let performance = '';
-            if (score >= 900) performance = '🏆 Outstanding! Vocabulary Master!';
-            else if (score >= 700) performance = '⭐ Excellent! Great job!';
-            else if (score >= 500) performance = '👍 Good effort! Keep practicing!';
-            else performance = '📚 Keep learning! You can do better!';
+            if (lives <= 0) {
+                performance = '💔 Game Over! You ran out of lives. Keep practicing!';
+            } else if (timeLeft <= 0) {
+                performance = '⏰ Time\'s up! Better luck next time!';
+            } else if (score >= 900) {
+                performance = '🏆 Outstanding! Vocabulary Master!';
+            } else if (score >= 700) {
+                performance = '⭐ Excellent! Great job!';
+            } else if (score >= 500) {
+                performance = '👍 Good effort! Keep practicing!';
+            } else {
+                performance = '📚 Keep learning! You can do better!';
+            }
 
             document.getElementById('performance').textContent = performance;
             displayLeaderboard('resultsLeaderboard');
@@ -878,6 +808,115 @@
 
         displayLeaderboard('leaderboardList');
     </script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎮 Word Rush</h1>
+        <p class="subtitle">Master English to Malay Vocabulary</p>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen active">
+            <h2 style="text-align: center; margin-bottom: 20px;">Choose Your Level</h2>
+            <div class="difficulty-buttons">
+                <button class="btn btn-level1" onclick="startGame('level1')">
+                    🟢 Level 1<br><small>Beginner Vocabulary</small>
+                </button>
+                <button class="btn btn-level2" onclick="startGame('level2')">
+                    🔵 Level 2<br><small>Intermediate Vocabulary</small>
+                </button>
+                <button class="btn btn-level3" onclick="startGame('level3')">
+                    🔴 Level 3<br><small>Advanced Vocabulary</small>
+                </button>
+                <button class="btn btn-level4" onclick="startGame('level4')">
+                    🟣 Level 4<br><small>Rare/Expert Vocabulary</small>
+                </button>
+            </div>
+
+            <div class="leaderboard">
+                <h3>🏆 Leaderboard</h3>
+                <ul id="leaderboardList" class="leaderboard-list">
+                    <li class="leaderboard-item">
+                        <span class="leaderboard-rank">#1</span>
+                        <span class="leaderboard-name">Start playing to see rankings!</span>
+                        <span class="leaderboard-score">-</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">Question</div>
+                    <div class="info-value" id="questionNumber">1/10</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Score</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Lives</div>
+                    <div class="info-value" id="lives">❤️❤️❤️</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Time</div>
+                    <div class="info-value" id="timer">120</div>
+                </div>
+            </div>
+
+            <div class="streak-indicator" id="streakIndicator">
+                🔥 On Fire! 3 in a row!
+            </div>
+
+            <div class="question-box">
+                <div class="question-text" id="questionText"></div>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+
+            <input type="text" class="answer-input" id="answerInput" placeholder="Type your Malay translation here..."
+                onkeypress="handleKeyPress(event)">
+
+            <button class="btn btn-primary" style="width: 100%;" id="actionBtn" onclick="handleButtonClick()">
+                Submit Answer
+            </button>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="screen">
+            <div class="results-summary">
+                <h2>🎉 Game Complete!</h2>
+                <div class="final-score" id="finalScore">0</div>
+                <div class="performance" id="performance"></div>
+            </div>
+
+            <div>
+                <label for="playerName">Enter your name for the leaderboard:</label>
+                <input type="text" id="playerName" class="name-input" placeholder="Your name">
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" style="flex: 1;" onclick="saveScore()">
+                    Save Score
+                </button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="restartGame()">
+                    Play Again
+                </button>
+            </div>
+
+            <div class="leaderboard">
+                <h3>🏆 Leaderboard</h3>
+                <ul id="resultsLeaderboard" class="leaderboard-list"></ul>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
