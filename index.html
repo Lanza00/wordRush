@@ -364,6 +364,64 @@
     </style>
 
     <script>
+        // Audio functions for feedback
+        function playCorrectSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function playWrongSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 200;
+            oscillator.type = 'sawtooth';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function playStreakSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Play a quick ascending tone
+            [600, 750, 900].forEach((freq, index) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = freq;
+                oscillator.type = 'sine';
+
+                const startTime = audioContext.currentTime + (index * 0.1);
+                gainNode.gain.setValueAtTime(0.2, startTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15);
+
+                oscillator.start(startTime);
+                oscillator.stop(startTime + 0.15);
+            });
+        }
+
         // Game data - organized by levels
         const vocabulary = {
             level1: [
@@ -582,6 +640,9 @@
             const feedback = document.getElementById('feedback');
 
             if (result.correctWords > 0) {
+                // Play correct answer sound
+                playCorrectSound();
+
                 const points = result.correctWords * 10;
                 const timeBonus = result.correctWords * 5;
                 score += points;
@@ -606,10 +667,14 @@
                 feedback.innerHTML = feedbackHTML;
 
                 if (streak >= 3) {
+                    playStreakSound();
                     document.getElementById('streakIndicator').classList.add('active');
                     document.getElementById('streakIndicator').textContent = `🔥 On Fire! ${streak} in a row!`;
                 }
             } else {
+                // Play wrong answer sound
+                playWrongSound();
+
                 streak = 0;
                 lives--; // Deduct a life for completely wrong answer
                 updateLivesDisplay();
