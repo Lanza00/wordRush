@@ -400,6 +400,152 @@
                 opacity: 1;
             }
         }
+
+        /* Logo styling */
+        #gameHeader h1 img {
+            max-width: 300px;
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #gameHeader p {
+            text-align: center;
+            color: #666;
+            margin: 15px auto 30px;
+            max-width: 600px;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        /* Responsive design for mobile devices */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            #gameHeader h1 img {
+                max-width: 200px;
+            }
+
+            #gameHeader p {
+                font-size: 14px;
+                line-height: 1.5;
+                margin: 10px auto 20px;
+            }
+
+            .difficulty-buttons {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 15px;
+                font-size: 1em;
+            }
+
+            .game-info {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .info-item {
+                flex: 1 1 45%;
+            }
+
+            .info-value {
+                font-size: 1.2em;
+            }
+
+            .question-text {
+                font-size: 1.2em;
+            }
+
+            .countdown-text {
+                font-size: 3em;
+            }
+
+            .final-score {
+                font-size: 2em;
+            }
+
+            .performance {
+                font-size: 1em;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            #gameHeader h1 img {
+                max-width: 150px;
+            }
+
+            #gameHeader p {
+                font-size: 13px;
+                margin: 8px auto 15px;
+            }
+
+            h2 {
+                font-size: 1.3em;
+            }
+
+            .btn {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+
+            .info-item {
+                flex: 1 1 100%;
+            }
+
+            .info-label {
+                font-size: 0.8em;
+            }
+
+            .info-value {
+                font-size: 1em;
+            }
+
+            .question-text {
+                font-size: 1.1em;
+            }
+
+            .answer-input {
+                font-size: 1em;
+                padding: 12px;
+            }
+
+            .countdown-text {
+                font-size: 2.5em;
+            }
+
+            .final-score {
+                font-size: 1.8em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .leaderboard-item {
+                flex-wrap: wrap;
+                padding: 10px;
+            }
+
+            .leaderboard-rank {
+                margin-right: 10px;
+            }
+        }
     </style>
 
     <script>
@@ -1007,8 +1153,8 @@
 <body>
     <div class="container">
         <div id="gameHeader">
-            <h1><img src="logo.jpeg" alt="Word Rush" style="max-width: 300px; height: auto;"></h1>
-            <p style="text-align: center; color: #666; margin: 15px auto 30px; max-width: 600px; line-height: 1.6; font-size: 16px;">
+            <h1><img src="logo.jpeg" alt="Word Rush"></h1>
+            <p>
                 An educational Malay to English typing and translation game designed to help you improve your vocabulary skills.
                 Type the correct English translation for each Malay word as quickly and accurately as you can!
             </p>
