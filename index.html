@@ -361,6 +361,45 @@
             color: #666;
             margin-top: 5px;
         }
+
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .countdown-overlay.active {
+            display: flex;
+        }
+
+        .countdown-text {
+            font-size: 6em;
+            font-weight: bold;
+            color: white;
+            animation: countdownPulse 1s ease-in-out;
+        }
+
+        @keyframes countdownPulse {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 
     <script>
@@ -420,6 +459,51 @@
                 oscillator.start(startTime);
                 oscillator.stop(startTime + 0.15);
             });
+        }
+
+        function playCountdownSound(text) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Different sounds for different countdown stages
+            if (text === 'Get Ready!') {
+                oscillator.frequency.value = 440;
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } else if (text === '3' || text === '2' || text === '1') {
+                oscillator.frequency.value = 600;
+                oscillator.type = 'square';
+                gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } else if (text === 'GO!') {
+                // Play an exciting ascending tone for GO!
+                [700, 850, 1000].forEach((freq, index) => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+
+                    osc.frequency.value = freq;
+                    osc.type = 'sine';
+
+                    const startTime = audioContext.currentTime + (index * 0.08);
+                    gain.gain.setValueAtTime(0.3, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.2);
+                });
+            }
         }
 
         // Game data - organized by levels
@@ -576,9 +660,43 @@
             isAnswerSubmitted = false;
 
             showScreen('gameScreen');
-            loadQuestion();
-            startTimer();
             updateLivesDisplay();
+
+            // Show countdown before starting
+            showCountdown();
+        }
+
+        function showCountdown() {
+            const overlay = document.getElementById('countdownOverlay');
+            const text = document.getElementById('countdownText');
+
+            overlay.classList.add('active');
+
+            const countdownSequence = ['Get Ready!', '3', '2', '1', 'GO!'];
+            let index = 0;
+
+            function displayNext() {
+                if (index < countdownSequence.length) {
+                    const currentText = countdownSequence[index];
+                    text.textContent = currentText;
+                    text.style.animation = 'none';
+                    setTimeout(() => {
+                        text.style.animation = 'countdownPulse 1s ease-in-out';
+                    }, 10);
+
+                    // Play countdown sound
+                    playCountdownSound(currentText);
+
+                    index++;
+                    setTimeout(displayNext, 1000);
+                } else {
+                    overlay.classList.remove('active');
+                    loadQuestion();
+                    startTimer();
+                }
+            }
+
+            displayNext();
         }
 
         function shuffleArray(array) {
@@ -835,6 +953,10 @@
             displayLeaderboard('resultsLeaderboard');
 
             alert('Score saved successfully!');
+
+            // Clear the input field and return to start screen
+            document.getElementById('playerName').value = '';
+            restartGame();
         }
 
         function displayLeaderboard(elementId) {
@@ -868,6 +990,14 @@
                 screen.classList.remove('active');
             });
             document.getElementById(screenId).classList.add('active');
+
+            // Hide header during game, show it on start and results screens
+            const header = document.getElementById('gameHeader');
+            if (screenId === 'gameScreen') {
+                header.style.display = 'none';
+            } else {
+                header.style.display = 'block';
+            }
         }
 
         displayLeaderboard('leaderboardList');
@@ -876,11 +1006,13 @@
 
 <body>
     <div class="container">
-        <h1><img src="logo.jpeg" alt="Word Rush" style="max-width: 300px; height: auto;"></h1>
-        <p style="text-align: center; color: #666; margin: 15px auto 30px; max-width: 600px; line-height: 1.6; font-size: 16px;">
-            An educational Malay to English typing and translation game designed to help you improve your vocabulary skills.
-            Type the correct English translation for each Malay word as quickly and accurately as you can!
-        </p>
+        <div id="gameHeader">
+            <h1><img src="logo.jpeg" alt="Word Rush" style="max-width: 300px; height: auto;"></h1>
+            <p style="text-align: center; color: #666; margin: 15px auto 30px; max-width: 600px; line-height: 1.6; font-size: 16px;">
+                An educational Malay to English typing and translation game designed to help you improve your vocabulary skills.
+                Type the correct English translation for each Malay word as quickly and accurately as you can!
+            </p>
+        </div>
 
         <!-- Start Screen -->
         <div id="startScreen" class="screen active">
@@ -982,6 +1114,11 @@
                 <ul id="resultsLeaderboard" class="leaderboard-list"></ul>
             </div>
         </div>
+    </div>
+
+    <!-- Countdown Overlay -->
+    <div id="countdownOverlay" class="countdown-overlay">
+        <div id="countdownText" class="countdown-text">Get Ready!</div>
     </div>
 
 </body>
