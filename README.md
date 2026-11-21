@@ -2,7 +2,7 @@
 
 An educational typing and translation game designed to help users improve their Malay to English vocabulary skills through an engaging, gamified experience.
 
-> © 2026 Aznal Anas. All rights reserved. Shared for portfolio viewing only; see [License](#license).
+> © 2026 Aznal Anas and Azammier A'laa. All rights reserved. Shared for portfolio viewing only; see [License](#license).
 
 ## Overview
 
@@ -208,7 +208,7 @@ Edit the CSS classes in the `<style>` section:
 
 ## Credits
 
-**Game Design & Development**: Created for educational purposes
+**Game Design & Development**: Aznal Anas and Azammier A'laa
 
 **Audio**: Web Audio API - dynamically generated sound effects
 
@@ -216,9 +216,9 @@ Edit the CSS classes in the `<style>` section:
 
 ## License
 
-Copyright (c) 2026 Aznal Anas. **All rights reserved.**
+Copyright (c) 2026 Aznal Anas and Azammier A'laa. **All rights reserved.**
 
-This code is public for portfolio viewing only. You may not copy, reuse, modify, redistribute or publish it, in whole or in part, without my written permission. See [LICENSE](LICENSE) for the full terms.
+This code is public for portfolio viewing only. You may not copy, reuse, modify, redistribute or publish it, in whole or in part, without written permission from the authors. See [LICENSE](LICENSE) for the full terms.
 
 ## Support
 
