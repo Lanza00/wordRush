@@ -2,6 +2,8 @@
 
 An educational typing and translation game designed to help users improve their Malay to English vocabulary skills through an engaging, gamified experience.
 
+> © 2026 Aznal Anas. All rights reserved. Shared for portfolio viewing only; see [License](#license).
+
 ## Overview
 
 Word Rush is a web-based educational game that challenges players to translate English words to Malay as quickly and accurately as possible. The game features multiple difficulty levels, real-time feedback, streak tracking, and a competitive leaderboard system.
@@ -149,6 +151,8 @@ Streak: Activated at 3+ consecutive correct answers
 
 ## Customization
 
+*Notes for the author's own reference. Reuse requires permission (see [License](#license)).*
+
 ### Modifying Vocabulary
 Edit the `vocabulary` object in `index.html` (around line 470):
 ```javascript
@@ -212,7 +216,9 @@ Edit the CSS classes in the `<style>` section:
 
 ## License
 
-This project is open for educational use. Feel free to modify and adapt for your language learning needs.
+Copyright (c) 2026 Aznal Anas. **All rights reserved.**
+
+This code is public for portfolio viewing only. You may not copy, reuse, modify, redistribute or publish it, in whole or in part, without my written permission. See [LICENSE](LICENSE) for the full terms.
 
 ## Support
 
